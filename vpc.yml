@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: 
+  "We are creating a VPC with 2 public & 2 private subnets deployed in 2 AZ"
+
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "VPC Cidr and the Subnet Cidr"
+        Parameters: 
+          - CidrRange
+          - SubnetPublic1
+          - SubnetPublic2
+          - SubnetPrivate1
+          - SubnetPrivate2
+      - 
+        Label: 
+          default: "AZ selection"
+        Parameters: 
+          - AZ1
+          - AZ2
+
+Parameters:
+  MyVPCName:
+    Type: String
+    Description: "Please Provide the Name for the VPC"
+  Environment:
+    Type: String
+    Description: "Please Provide the Name of the Environment where we are deploying the VPC"
+    AllowedValues:
+      - Dev
+      - Stg
+      - Prod
+  CidrRange:
+    Type: String
+    Description: "Please Provide the CidrRange of the VPC ex: 10.1.0.0/16"
+  SubnetPublic1:   
+    Description: "Please Provide the CidrRange of the 1st PublicSubnet ex: 10.1.1.0/24"
+    Type: String
+  SubnetPublic2:
+    Description: "Please Provide the CidrRange of the 2nd PublicSubnet ex: 10.1.1.0/24"
+    Type: String
+  SubnetPrivate1:
+    Description: "Please Provide the CidrRange of the 1nd PrivateSubnet ex: 10.1.1.0/24"
+    Type: String
+  SubnetPrivate2:
+    Description: "Please Provide the CidrRange of the 1nd PrivateSubnet ex: 10.1.1.0/24"
+    Type: String
+  AZ1:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: "Please Provide the AZ1 name ex: us-east-1e"
+  AZ2:
+    Type: "AWS::EC2::AvailabilityZone::Name"
+    Description: "Please Provide the AZ2 name ex: us-east-1f"
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: !Ref CidrRange
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags: 
+        - Key: env
+          Value: !Ref Environment
+        - Key: Name
+          Value: !Ref MyVPCName          
+  InternetGW:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: env
+          Value: !Ref Environment
+        - Key: Name
+          Value: !Join [ "_", [ !Ref MyVPCName, MyIG ] ]          
+  InternetGWAttachement:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref InternetGW
+      VpcId: !Ref MyVPC
+
+  Private1:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Ref AZ1
+      CidrBlock: !Ref SubnetPrivate1
+      Tags: 
+        - Key: Name
+          Value: !Join [ "_", [ !Ref MyVPCName, Private1 ] ]  
+      VpcId: !Ref MyVPC
+  Private2:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Ref AZ2
+      CidrBlock: !Ref SubnetPrivate2
+      Tags: 
+        - Key: Name
+          Value: !Join [ "_", [ !Ref MyVPCName, Private2 ] ]  
+      VpcId: !Ref MyVPC
+  Public1:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Ref AZ1
+      CidrBlock: !Ref SubnetPublic1
+      Tags: 
+        - Key: Name
+          Value: !Join [ "_", [ !Ref MyVPCName, Public1 ] ]  
+      VpcId: !Ref MyVPC
+  Public2:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: !Ref AZ2
+      CidrBlock: !Ref SubnetPublic2
+      Tags: 
+        - Key: Name
+          Value: !Join [ "_", [ !Ref MyVPCName, Public2 ] ] 
+      VpcId: !Ref MyVPC
+  # NAT:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #       SubnetId:
+  #         Ref: Subnet
+  #       Tags:
+  #       - Key: env
+  #         Value: !Ref Environment
+  RouteTablePrivate:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+      - Key: env
+        Value: !Ref Environment
+      - Key: Name
+        Value: !Join [ "_", [ !Ref MyVPCName, RouteTablePrivate ] ]  
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+      - Key: env
+        Value: !Ref Environment
+      - Key: Name
+        Value: !Join [ "_", [ !Ref MyVPCName, RouteTablePublic ] ] 
+  RoutePublic:
+    Type: AWS::EC2::Route
+    # DependsOn: GatewayToInternet
+    Properties:
+       RouteTableId: !Ref RouteTablePublic
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGW
+# S3GatewayEndpoint:
+#   Type: 'AWS::EC2::VPCEndpoint'
+#   Properties:
+#     PolicyDocument:
+#       Version: 2012-10-17
+#       Statement:
+#         - Effect: Allow
+#           Principal: '*'
+#           Action:
+#             - 's3:GetObject'
+#           Resource:
+#             - 'arn:aws:s3:::examplebucket/*'
+#     RouteTableIds:
+#       - !Ref routetableA
+#       - !Ref routetableB
+#     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+#     VpcId: !Ref VPCID
+Outputs:
+  VPCID:
+    Value: !Ref MyVPC
+  DefaultSG:
+    Value: !GetAtt MyVPC.DefaultSecurityGroup
+  # PublicRtId:
+  #   Value: !GetAtt MyVPC.RouteTablePublic
+  # PrivateRtId:
+  #   Value: !GetAtt MyVPC.RouteTablePrivate
+  # PublicSubnetId1:
+  #   Value: !GetAtt MyVPC.Public1
+  # PublicSubnetId2:
+  #   Value: !GetAtt MyVPC.Public2
+  # PrivateSubnetId1:
+  #   Value: !GetAtt MyVPC.Private1
+  # PrivateSubnetId2:
+  #   Value: !GetAtt MyVPC.Private2

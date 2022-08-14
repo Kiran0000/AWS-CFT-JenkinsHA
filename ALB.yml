@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Paramters:
+  ALBName:
+    Type: String
+    Default: 'MyJenkinsALB'
+  ALBSGName:
+    Type: String
+    Default: 'JenkisSG-HTTP'
+
+Resources: 
+  MyALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: !Ref ALBName
+      Scheme: 'internet-facing'
+      SecurityGroups: 
+        - !Ref MYALBSG
+      Subnets: 
+        - String
+      Tags: 
+        - Key: Env
+          Value: POC
+      Type: application 
+  HTTPListner:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      DefaultActions: 
+        - Action
+      LoadBalancerArn: String
+      Port: Integer
+      Protocol: String
+      SslPolicy: String
+  
+  HTTPListnerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties: 
+      Actions: 
+        - forward
+      Conditions: 
+        - RuleCondition
+      ListenerArn: String
+      Priority: Integer
+
+  MYALBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: 'Security Group for the ALB'
+      GroupName: !Ref ALBSGName
+      Tags: 
+        - Key: Env
+          Value: POC
+      VpcId: !ImportValue MyVPCID
+  HTTP:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties: 
+      CidrIp: '0.0.0.0/0'
+      CidrIpv6: '::/0'
+      Description: 'Open to the World for HTTP'
+      FromPort: 80
+      GroupId: !Ref MYALBSG
+      IpProtocol: tcp
+      ToPort: 80

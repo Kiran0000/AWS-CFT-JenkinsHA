@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: 
+  "Creating a Key for EC2 instances"
+
+Parameters:
+  KeyName:
+    Type: String
+    Default: MYKP.pem
+
+Resources:
+  MyKey:
+    Type: AWS::EC2::KeyPair
+    Properties: 
+      KeyName: !Ref KeyName
+      KeyType: ed25519
+      Tags: 
+        - Key: env
+          Value: POC
+        - Key: type
+          Value: Keypair
+
+Outputs:
+  EC2Key:
+    Description: 'The Jenkins EC2 Key'
+    Value: !Ref KeyName
+    Export:
+      Name: KeyName
+
+

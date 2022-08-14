@@ -1,0 +1,8 @@
+Insturction on how to build this project. 
+
+aws cloudformation describe-stack-events --stack-name AWSECR --query 'StackEvents[?ResourceStatusReason!=User Intiated]'
+aws cloudformation describe-stack-events --stack-name AWSECR --query 'StackEvents[?ResourceStatusReason!="User Intiated"]'
+aws cloudformation create-stack --stack-name AWSECR --template-body file://AWSECR.yml
+aws cloudformation create-change-set --stack-name EC2Key  --change-set-name 'KeyPair' --template-body file://Key.yml 
+aws cloudformation execute-change-set --change-set-name KeyPair --stack-name EC2Key 
+aws cloudformation describe-stacks --stack-name CodeCommit --query "Stacks[*]"
