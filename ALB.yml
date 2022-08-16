@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Paramters:
+Parameters:
   ALBName:
     Type: String
     Default: 'MyJenkinsALB'
@@ -17,30 +17,35 @@ Resources:
       SecurityGroups: 
         - !Ref MYALBSG
       Subnets: 
-        - String
+        - !ImportValue MYVPC-Public1-Subnet
+        - !ImportValue MYVPC-Public2-Subnet
       Tags: 
         - Key: Env
           Value: POC
       Type: application 
+
   HTTPListner:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
       DefaultActions: 
-        - Action
-      LoadBalancerArn: String
-      Port: Integer
-      Protocol: String
-      SslPolicy: String
-  
-  HTTPListnerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    Properties: 
-      Actions: 
-        - forward
-      Conditions: 
-        - RuleCondition
-      ListenerArn: String
-      Priority: Integer
+       - Type: "redirect"
+         RedirectConfig:
+           Protocol: "HTTPS"
+           Port: 80
+           StatusCode: "HTTP_301"
+      LoadBalancerArn: !Ref MyALB
+      Port: 80
+      Protocol: "HTTP"
+
+  # HTTPListnerRule:
+  #   Type: AWS::ElasticLoadBalancingV2::ListenerRule
+  #   Properties: 
+  #     Actions: 
+  #       - forward
+  #     Conditions: 
+  #       - RuleCondition
+  #     ListenerArn: String
+  #     Priority: Integer
 
   MYALBSG:
     Type: AWS::EC2::SecurityGroup
@@ -51,6 +56,7 @@ Resources:
         - Key: Env
           Value: POC
       VpcId: !ImportValue MyVPCID
+
   HTTP:
     Type: AWS::EC2::SecurityGroupEgress
     Properties: 
@@ -61,3 +67,15 @@ Resources:
       GroupId: !Ref MYALBSG
       IpProtocol: tcp
       ToPort: 80
+
+Outputs:
+  MYALBEndpoint:
+    Description: 'The URL for the MYALB'
+    Value: !GetAtt MyALB.DNSName
+    Export:
+      Name: !Sub '${AWS::StackName}-Endpoint' 
+  MYALBSG:
+    Description: 'MyALB Security Group'
+    Value: !Ref MYALBSG
+    Export:
+      Name: !Sub '${AWS::StackName}-SG' 

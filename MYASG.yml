@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: 
+  "Creating a Auto Scaling Group with Jenkins instances"
+
+Parameters:
+  ASGName:
+    Type: String
+    Default: MyJenkinsASG
+
+Resources:
+  MyASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties: 
+      AutoScalingGroupName: !Ref ASGName
+      AvailabilityZones: 
+        - String
+      DesiredCapacity: 1
+      HealthCheckGracePeriod: 180
+      # HealthCheckType: String
+      InstanceId: String
+      LaunchConfigurationName: String
+      LaunchTemplate: 
+        LaunchTemplateId: 
+      LifecycleHookSpecificationList: 
+        - LifecycleHookSpecification
+      LoadBalancerNames: 
+        - String
+      MaxInstanceLifetime: Integer
+      MaxSize: String
+      MetricsCollection: 
+        - MetricsCollection
+      MinSize: String
+      MixedInstancesPolicy: 
+        MixedInstancesPolicy
+      NewInstancesProtectedFromScaleIn: Boolean
+      NotificationConfigurations: 
+        - NotificationConfiguration
+      PlacementGroup: String
+      ServiceLinkedRoleARN: String
+      Tags: 
+        - TagProperty
+      TargetGroupARNs: 
+        - String
+      TerminationPolicies: 
+        - String
+      VPCZoneIdentifier: 
+        - String
+
+Outputs:
+  EC2Key:
+    Description: 'The Jenkins EC2 Key'
+    Value: !Ref KeyName
+    Export:
+      Name: KeyName
+
+

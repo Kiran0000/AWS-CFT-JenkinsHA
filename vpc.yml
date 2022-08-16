@@ -169,17 +169,33 @@ Resources:
 Outputs:
   VPCID:
     Value: !Ref MyVPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VPCID'
   DefaultSG:
     Value: !GetAtt MyVPC.DefaultSecurityGroup
-  # PublicRtId:
-  #   Value: !GetAtt MyVPC.RouteTablePublic
-  # PrivateRtId:
-  #   Value: !GetAtt MyVPC.RouteTablePrivate
-  # PublicSubnetId1:
-  #   Value: !GetAtt MyVPC.Public1
-  # PublicSubnetId2:
-  #   Value: !GetAtt MyVPC.Public2
-  # PrivateSubnetId1:
-  #   Value: !GetAtt MyVPC.Private1
-  # PrivateSubnetId2:
-  #   Value: !GetAtt MyVPC.Private2
+    Export:
+      Name: !Sub '${AWS::StackName}-VPC_DSG'
+  PublicRtId:
+    Value: !GetAtt RouteTablePublic.RouteTableId
+    Export:
+      Name: !Sub '${AWS::StackName}-Public-RT'
+  PrivateRtId:
+    Value: !GetAtt RouteTablePrivate.RouteTableId
+    Export:
+      Name: !Sub '${AWS::StackName}-Private-RT'
+  PublicSubnetId1:
+    Value: !GetAtt Public1.SubnetId
+    Export:
+      Name: !Sub '${AWS::StackName}-Public1-Subnet'
+  PublicSubnetId2:
+    Value: !GetAtt Public2.SubnetId
+    Export:
+      Name: !Sub '${AWS::StackName}-Public2-Subnet'
+  PrivateSubnetId1:
+    Value: !GetAtt Private1.SubnetId
+    Export:
+      Name: !Sub '${AWS::StackName}-Private1-Subnet'
+  PrivateSubnetId2:
+    Value: !GetAtt Private2.SubnetId
+    Export:
+      Name: !Sub '${AWS::StackName}-Private2-Subnet'

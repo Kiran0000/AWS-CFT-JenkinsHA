@@ -22,3 +22,10 @@ Resources:
           InstanceType: !Ref MyInstanceSize
           KeyName: !ImportValue KeyName
       LaunchTemplateName: !Ref LauchTemplateName
+
+Outputs:
+  MyLaunchTemplateID:
+    Description: 'Id of the MyLaunch Template'
+    Value: !Ref MyLaunchTemplate
+    Export:
+      Name: !Sub '${AWS::StackName}-Id'
