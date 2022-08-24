@@ -14,18 +14,14 @@ Resources:
     Properties: 
       AutoScalingGroupName: !Ref ASGName
       AvailabilityZones: 
-        - String
+        -  !ImportValue MYVPC-Private1-AZ
+           !ImportValue MYVPC-Private2-AZ
       DesiredCapacity: 1
       HealthCheckGracePeriod: 180
-      # HealthCheckType: String
-      InstanceId: String
-      LaunchConfigurationName: String
       LaunchTemplate: 
-        LaunchTemplateId: 
-      LifecycleHookSpecificationList: 
-        - LifecycleHookSpecification
+          LaunchTemplateId:  !ImportValue MYLaunchTemplate-Id
       LoadBalancerNames: 
-        - String
+        - !ImportValue 
       MaxInstanceLifetime: Integer
       MaxSize: String
       MetricsCollection: 
