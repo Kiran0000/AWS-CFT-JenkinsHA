@@ -116,14 +116,23 @@ Resources:
         - Key: Name
           Value: !Join [ "_", [ !Ref MyVPCName, Public2 ] ] 
       VpcId: !Ref MyVPC
-  # NAT:
-  #   Type: AWS::EC2::NatGateway
-  #   Properties:
-  #       SubnetId:
-  #         Ref: Subnet
-  #       Tags:
-  #       - Key: env
-  #         Value: !Ref Environment
+  NAT:
+    Type: AWS::EC2::NatGateway
+    Properties:
+        AllocationId: !GetAtt NATEIP.AllocationId
+        SubnetId: !Ref Public2
+        Tags:
+        - Key: env
+          Value: !Ref Environment
+        # - Key: Name
+        #   Value: !Join [ "_", [ !Ref MyVPCName, !GetAtt NAT.SubnetId ] ]
+  NATEIP:
+    Type: AWS::EC2::EIP
+    Properties: 
+      Tags: 
+        - Key: env
+          Value: !Ref Environment
+
   RouteTablePrivate:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -142,30 +151,38 @@ Resources:
         Value: !Ref Environment
       - Key: Name
         Value: !Join [ "_", [ !Ref MyVPCName, RouteTablePublic ] ] 
+  RouteNAT:
+    Type: AWS::EC2::Route
+    Properties:
+       RouteTableId: !Ref RouteTablePrivate 
+       DestinationCidrBlock: 0.0.0.0/0
+       NatGatewayId: !Ref NAT
   RoutePublic:
     Type: AWS::EC2::Route
-    # DependsOn: GatewayToInternet
     Properties:
        RouteTableId: !Ref RouteTablePublic
        DestinationCidrBlock: 0.0.0.0/0
        GatewayId: !Ref InternetGW
-# S3GatewayEndpoint:
-#   Type: 'AWS::EC2::VPCEndpoint'
-#   Properties:
-#     PolicyDocument:
-#       Version: 2012-10-17
-#       Statement:
-#         - Effect: Allow
-#           Principal: '*'
-#           Action:
-#             - 's3:GetObject'
-#           Resource:
-#             - 'arn:aws:s3:::examplebucket/*'
-#     RouteTableIds:
-#       - !Ref routetableA
-#       - !Ref routetableB
-#     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
-#     VpcId: !Ref VPCID
+  RoutePublicAssosiation1: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref Public1
+  RoutePublicAssosiation2: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref Public2
+  RoutePrivateAssosiation1: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTablePrivate
+      SubnetId: !Ref Private1
+  RoutePrivateAssosiation2: 
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref RouteTablePrivate
+      SubnetId: !Ref Private2
 Outputs:
   VPCID:
     Value: !Ref MyVPC
@@ -174,7 +191,7 @@ Outputs:
   DefaultSG:
     Value: !GetAtt MyVPC.DefaultSecurityGroup
     Export:
-      Name: !Sub '${AWS::StackName}-VPC_DSG'
+      Name: !Sub '${AWS::StackName}-VPC-DSG'
   PublicRtId:
     Value: !GetAtt RouteTablePublic.RouteTableId
     Export:
@@ -199,3 +216,19 @@ Outputs:
     Value: !GetAtt Private2.SubnetId
     Export:
       Name: !Sub '${AWS::StackName}-Private2-Subnet'
+  PublicSubnetAZ1:
+    Value: !GetAtt Public1.AvailabilityZone
+    Export:
+      Name: !Sub '${AWS::StackName}-Public1-AZ'
+  PublicSubnetAZ2:
+    Value: !GetAtt Public2.AvailabilityZone
+    Export:
+      Name: !Sub '${AWS::StackName}-Public2-AZ'
+  PrivateSubnetAZ1:
+    Value: !GetAtt Private1.AvailabilityZone
+    Export:
+      Name: !Sub '${AWS::StackName}-Private1-AZ'
+  PrivateSubnetAZ2:
+    Value: !GetAtt Private2.AvailabilityZone
+    Export:
+      Name: !Sub '${AWS::StackName}-Private2-AZ'

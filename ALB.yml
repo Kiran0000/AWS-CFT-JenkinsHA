@@ -55,13 +55,12 @@ Resources:
       Tags: 
         - Key: Env
           Value: POC
-      VpcId: !ImportValue MyVPCID
+      VpcId: !ImportValue MYVPC-VPCID
 
-  HTTP:
-    Type: AWS::EC2::SecurityGroupEgress
+  HTTPIn:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties: 
       CidrIp: '0.0.0.0/0'
-      CidrIpv6: '::/0'
       Description: 'Open to the World for HTTP'
       FromPort: 80
       GroupId: !Ref MYALBSG
