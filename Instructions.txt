@@ -1,3 +1,10 @@
+
+Script execution order:
+VPC
+ALB
+Key
+LaunchTemplate
+
 Insturction on how to build this project. 
 
 aws cloudformation describe-stack-events --stack-name AWSECR --query 'StackEvents[?ResourceStatusReason!=User Intiated]'
@@ -6,3 +13,21 @@ aws cloudformation create-stack --stack-name AWSECR --template-body file://AWSEC
 aws cloudformation create-change-set --stack-name EC2Key  --change-set-name 'KeyPair' --template-body file://Key.yml 
 aws cloudformation execute-change-set --change-set-name KeyPair --stack-name EC2Key 
 aws cloudformation describe-stacks --stack-name CodeCommit --query "Stacks[*]"
+
+Configure the AWS cli: use the below commands to configure it. 
+
+aws configure
+
+First we will be deploying the VPC. 
+
+aws cloudformation create-stack --stack-name MYVPC --template-body file://vpc.yml --parameters file://vpc-paramters.json
+aws cloudformation delete-stack --stack-name MYVPC
+aws cloudformation update-stack --stack-name MYVPC --template-body file://vpc.yml --parameters file://vpc-paramters.json
+aws cloudformation delete-stack --stack-name MYVPC 
+aws cloudformation create-stack --stack-name MYALB --template-body file://ALB.yml 
+aws cloudformation delete-stack --stack-name MYALB
+
+aws cloudformation create-change-set --stack-name MYALB --change-set-name ALB-change-set --template-body  file://ALB.yml
+aws cloudformation execute-change-set --stack-name MYALB --change-set-name ALB-change-set 
+aws cloudformation create-stack --stack-name MYVPC --template-body file://LaunchTemplate.yml --parameters file://LaunchTemplate.parameters
+aws cloudformation delete-stack --stack-name MYVPC
